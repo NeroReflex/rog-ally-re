@@ -1,17 +1,17 @@
 /*
  * Intel ACPI Component Architecture
- * AML/ASL+ Disassembler version 20221020 (64-bit version)
- * Copyright (c) 2000 - 2022 Intel Corporation
+ * AML/ASL+ Disassembler version 20230628 (64-bit version)
+ * Copyright (c) 2000 - 2023 Intel Corporation
  * 
  * Disassembling to symbolic ASL+ operators
  *
- * Disassembly of dsdt.dat, Fri Jul 21 13:59:45 2023
+ * Disassembly of v323.dsdt.dat, Mon Oct 30 03:06:50 2023
  *
  * Original Table Header:
  *     Signature        "DSDT"
- *     Length           0x00011CC3 (72899)
+ *     Length           0x00011D28 (73000)
  *     Revision         0x02
- *     Checksum         0x08
+ *     Checksum         0x58
  *     OEM ID           "ALASKA"
  *     OEM Table ID     "A M I "
  *     OEM Revision     0x01072009 (17244169)
@@ -3796,7 +3796,7 @@ DefinitionBlock ("", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
     Method (_WAK, 1, NotSerialized)  // _WAK: Wake
     {
         DBG8 = (Arg0 << 0x04)
-        \_SB.PCI0.NWAK (Arg0) // calls stuff that does nothing
+        \_SB.PCI0.NWAK (Arg0)
         If (((Arg0 == 0x03) || (Arg0 == 0x04)))
         {
             If ((PICM != Zero))
@@ -7160,7 +7160,7 @@ DefinitionBlock ("", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
 
     Scope (_SB)
     {
-        OperationRegion (ACPO, SystemMemory, ACPB, 0x1B)
+        OperationRegion (ACPO, SystemMemory, ACPB, 0x1D)
         Field (ACPO, AnyAcc, NoLock, Preserve)
         {
             ACPS,   32, 
@@ -7177,7 +7177,9 @@ DefinitionBlock ("", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
             ABIS,   8, 
             CAB1,   32, 
             CAB2,   32, 
-            CCNT,   8
+            CCNT,   8, 
+            MCNT,   8, 
+            SCNT,   8
         }
     }
 
@@ -8655,6 +8657,7 @@ DefinitionBlock ("", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
                         SMIF = 0x0A
                         ASMI (0xFF)
                         Local0 = ALPR /* \_SB_.ALPR */
+                        Local0 += 0x0100
                         Return ((0x00010000 + Local0))
                     }
 
@@ -8884,6 +8887,19 @@ DefinitionBlock ("", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
                         {
                             Return (Zero)
                         }
+                    }
+
+                    If ((IIA0 == 0x001200D2))
+                    {
+                        Divide (CCNT, 0x02, Local1, Local0)
+                        Local0 |= 0x00010000
+                        Return (Local0)
+                    }
+
+                    If ((IIA0 == 0x001200D3))
+                    {
+                        Local0 = (MCNT | 0x00010000)
+                        Return (Local0)
                     }
                 }
 
@@ -9748,6 +9764,13 @@ DefinitionBlock ("", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
 
                         NB4A [Zero] = Local1
                         Return (^^PCI0.SBRG.EC0.WEBC (0x4A, One, NB4A))
+                    }
+
+                    If ((IIA0 == 0x001200D2))
+                    {
+                        SCNT = IIA1 /* \_SB_.ATKD.WMNB.IIA1 */
+                        ISMI (0xA5)
+                        Return (One)
                     }
                 }
 
@@ -12540,9 +12563,9 @@ DefinitionBlock ("", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
                         NTPF = One
                     }
 
-                    If ((^^^^NPCF.ATPP != 0xA0))
+                    If ((^^^^NPCF.ATPP != 0x78))
                     {
-                        ^^^^NPCF.ATPP = 0xA0
+                        ^^^^NPCF.ATPP = 0x78
                         NTPF = One
                     }
                 }
@@ -12561,9 +12584,9 @@ DefinitionBlock ("", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
                         NTPF = One
                     }
 
-                    If ((^^^^NPCF.ATPP != 0x78))
+                    If ((^^^^NPCF.ATPP != 0x48))
                     {
-                        ^^^^NPCF.ATPP = 0x78
+                        ^^^^NPCF.ATPP = 0x48
                         NTPF = One
                     }
                 }
@@ -12582,9 +12605,9 @@ DefinitionBlock ("", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
                         NTPF = One
                     }
 
-                    If ((^^^^NPCF.ATPP != 0xC8))
+                    If ((^^^^NPCF.ATPP != 0xF0))
                     {
-                        ^^^^NPCF.ATPP = 0xC8
+                        ^^^^NPCF.ATPP = 0xF0
                         NTPF = One
                     }
                 }

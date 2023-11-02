@@ -1,0 +1,84 @@
+WLED è un led interessante...
+BLED è un altro led interessante, ma solo uno dei due è veramente interessante
+
+IANE, 0x00100021 è la "tastiera" di un portatile
+
+echo '\\_SB.ATKD.IANE' 0xBC > /proc/acpi/call
+Ruineka: Looks like 0xE5 is suppose to be linked to the RGB lights when charging in sleep mode.
+
+se è vero guarda dsdt.dsl:9629 e dsdt.dsl:9634 
+
+Ruineka: So 0x0012007E (RMSA) sets an enable status and when it's value is "ONE" then ATKD.IANE 0x68 is sent.
+    | ATKP != 0 => charging
+    | ACPF = 0x01 => notifica BAT0 con 0x80 
+
+Ruineka: Nice. with a DSDT override forcing return 0x00010001 to 0x0012007e my keyboard is disabled on reboot.
+I have to sleep the device once to get the N-Key to show up. This is completely backwards to how it normally is.
+
+PBST = battery status
+
+
+
+
+
+==================================================================================================================
+
+one CLEAR difference between windows and linux ( remember I don't have anything asus installed) is that connecting the charger wakes up windows AND the controller reset no longer happens and if you disconnect the power cable while in sleep the ally "kinda" of wakes up because the screen does not show anything and goes to back to sleep. Basically the MCU fw is a little os by it self.
+I think that the controller in linux is not going to sleep correctly, that resumes it all and at this point i'm still pointing to some basic drivers missing some basic command. That would  explain why second sleep wakes it up. It has to actually be sleeping to wake up
+
+in linux if you disconnect the charger while in sleep something crashes because the power led does not go back to sleep but sometimes
+it works correctly and I know when it will work correctly 
+
+
+I can literally make it so the nkey never comes back by just unpluging and repluging the charger and looking at what the power led does.
+If it turns off after I unplugged the charger , the next wake up will have nkey. 
+
+==================================================================================================================
+
+
+[    0.247568] ACPI BIOS Error (bug): Could not resolve symbol [\_SB.PCI0.GPP2.WWAN], AE_NOT_FOUND (20230628/dswload2-163)
+[    0.247573] ACPI Error: AE_NOT_FOUND, During name lookup/catalog (20230628/psobject-220)
+[ 7666.531013] ACPI BIOS Error (bug): Could not resolve symbol [\_SB.PCI0.SBRG.EC0.LID], AE_NOT_FOUND (20230628/psargs-330)
+[ 7666.531024] ACPI Error: Aborting method \_SB.PEP._DSM due to previous error (AE_NOT_FOUND) (20230628/psparse-531)
+
+ACPI_LPS0_DSM_UUID_MICROSOFT      "11e00d56-ce64-47ce-837b-1f898f9aa461"
+#define ACPI_LPS0_GET_DEVICE_CONSTRAINTS	1
+#define ACPI_LPS0_SCREEN_OFF	3
+#define ACPI_LPS0_SCREEN_ON	4
+#define ACPI_LPS0_ENTRY		5
+#define ACPI_LPS0_EXIT		6
+#define ACPI_LPS0_MS_ENTRY      7
+#define ACPI_LPS0_MS_EXIT       8
+
+ACPI_LPS0_DSM_UUID_AMD      "e3f32452-febc-43ce-9039-932122d37721"
+#define ACPI_LPS0_ENTRY_AMD         2
+#define ACPI_LPS0_EXIT_AMD          3
+#define ACPI_LPS0_SCREEN_OFF_AMD    4
+#define ACPI_LPS0_SCREEN_ON_AMD     5
+
+
+
+
+
+on void acpi_s2idle_restore_early(void)
+-    if (acpi_s2idle_vendor_amd()) {
++	if (lps0_dsm_func_mask_microsoft > 0) {
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT,
++				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_ENTRY,
++				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON,
++				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
++	} else if (acpi_s2idle_vendor_amd()) {
+
+
+on int acpi_s2idle_prepare_late(void)
+-    if (acpi_s2idle_vendor_amd()) {
++	if (lps0_dsm_func_mask_microsoft > 0) {
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF,
++				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_MS_EXIT,
++				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
++		acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY,
++				lps0_dsm_func_mask_microsoft, lps0_dsm_guid_microsoft);
++	} else if (acpi_s2idle_vendor_amd()) {
